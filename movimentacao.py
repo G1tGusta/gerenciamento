@@ -1,37 +1,48 @@
-import sqlite3
-from datetime import datetime
+# movimentacao.py
+from database import conectar
+from produto import buscar_produto_por_id, atualizar_estoque
 
-# =========================
-# Registrar Movimentação
-# =========================
-def registrar_movimentacao(produto_id, quantidade, tipo): 
-    conn = sqlite3.connect("estoque.db")
-    cursor = conn.cursor()
+def registrar_movimentacao(produto_id, quantidade, tipo):
+    """
+    tipo: 'entrada' ou 'saida'
+    """
+    produto = buscar_produto_por_id(produto_id)
+    if not produto:
+        raise ValueError("Produto não encontrado.")
 
-    # Inserir movimentação
-    data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute(
-        "INSERT INTO movimentacoes (produto_id, quantidade, tipo, data) VALUES (?, ?, ?, ?)",
-        (produto_id, quantidade, tipo, data)
-    )
+    id_produto, nome, categoria, preco, qtd_atual = produto
 
-    # Atualizar estoque
     if tipo == "entrada":
-        cursor.execute("UPDATE produtos SET quantidade = quantidade + ? WHERE id = ?", (quantidade, produto_id))
+        nova_quantidade = qtd_atual + quantidade
     elif tipo == "saida":
-        cursor.execute("UPDATE produtos SET quantidade = quantidade - ? WHERE id = ?", (quantidade, produto_id))
+        if quantidade > qtd_atual:
+            raise ValueError(f"Estoque insuficiente! Estoque atual: {qtd_atual}")
+        nova_quantidade = qtd_atual - quantidade
+    else:
+        raise ValueError("Tipo inválido. Use 'entrada' ou 'saida'.")
 
+    # Atualiza estoque
+    atualizar_estoque(produto_id, nova_quantidade)
+
+    # Registra histórico
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO movimentacoes (produto_id, tipo, quantidade)
+        VALUES (?, ?, ?)
+    """, (produto_id, tipo, quantidade))
     conn.commit()
     conn.close()
 
-
-# =========================
-# Listar Movimentações
-# =========================
 def listar_movimentacoes():
-    conn = sqlite3.connect("estoque.db")
+    conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM movimentacoes ORDER BY data DESC")
-    movimentacoes = cursor.fetchall()
+    cursor.execute("""
+        SELECT m.id, p.nome, m.tipo, m.quantidade, m.data
+        FROM movimentacoes m
+        JOIN produtos p ON p.id = m.produto_id
+        ORDER BY m.data DESC
+    """)
+    movimentos = cursor.fetchall()
     conn.close()
-    return movimentacoes
+    return movimentos
