@@ -4,7 +4,7 @@ from datetime import datetime
 # =========================
 # Registrar Movimentação
 # =========================
-def registrar_movimentacao(produto_id, quantidade, tipo):
+def registrar_movimentacao(produto_id, quantidade, tipo): 
     conn = sqlite3.connect("estoque.db")
     cursor = conn.cursor()
 
