@@ -5,5 +5,3 @@ if __name__ == "__main__":
     criar_tabelas()
     iniciar_interface()
 
-
-    #aaaaa
