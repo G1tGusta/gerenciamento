@@ -109,22 +109,6 @@ def atualizar_preco_interface(entry_id, entry_preco, tree):
         atualizar_tabela(tree)
     except Exception as e:
         messagebox.showerror("Erro", str(e))
-        
-def abrir_relatorio_movimentacoes():
-    movimentos = listar_movimentacoes()
-
-    relatorio = tk.Toplevel()
-    relatorio.title("Relatório de Movimentações")
-    relatorio.geometry("600x400")
-
-    colunas = ("ID", "Produto", "Tipo", "Quantidade", "Data")
-    tree_mov = ttk.Treeview(relatorio, columns=colunas, show="headings")
-    for col in colunas:
-        tree_mov.heading(col, text=col)
-    tree_mov.pack(fill="both", expand=True)
-
-    for m in movimentos:
-        tree_mov.insert("", "end", values=m)
 
 # ==== INTERFACE PRINCIPAL ====
 
@@ -225,28 +209,13 @@ def iniciar_interface(user_id, nome, nivel):
 
     btn_relatorio = tk.Button(frame_botoes, text="Relatório de Movimentações",
                               command=abrir_relatorio_movimentacoes)
-    
+    btn_relatorio.pack(side="left", padx=10)
+
     btn_dashboard = tk.Button(frame_botoes, text="Dashboard",
                               command=abrir_dashboard_completo)
     btn_dashboard.pack(side="left", padx=10)
 
-    # Botões extras no rodapé
-    frame_botoes = tk.Frame(root)
-    frame_botoes.pack(side="bottom", fill="x", pady=10)
-
-    btn_atualizar = tk.Button(frame_botoes, text="Atualizar Estoque",
-                          command=lambda: atualizar_tabela(tree))
-    btn_atualizar.pack(side="left", padx=10)
-
-    btn_relatorio = tk.Button(frame_botoes, text="Relatório de Movimentações",
-                          command=abrir_relatorio_movimentacoes)
-    btn_relatorio.pack(side="left", padx=10)
-
-    btn_dashboard = tk.Button(frame_botoes, text="Dashboard",
-                          command=abrir_dashboard_completo)
-    btn_dashboard.pack(side="left", padx=10)
-
-# Carrega estoque inicial + alerta
+    # Carrega estoque inicial + alerta
     atualizar_tabela(tree, alertar=True)
 
     root.mainloop()
