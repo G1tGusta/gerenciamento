@@ -10,9 +10,11 @@ pandas
 
 # Gráficos e dashboards
 matplotlib
+customtkinter
 
 # Inteligência Artificial
 scikit-learn
 
 # Interface web (opcional, para futura expansão)
 flask
+

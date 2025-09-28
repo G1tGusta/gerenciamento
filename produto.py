@@ -54,3 +54,23 @@ def deletar_produto(produto_id):
     cursor.execute("DELETE FROM produtos WHERE id = ?", (produto_id,))
     conn.commit()
     conn.close()
+
+def atualizar_preco(produto_id, novo_preco):
+    novo_preco = str(novo_preco).replace(",", ".")
+    try:
+        novo_preco = float(novo_preco)
+    except ValueError:
+        raise ValueError("Preço inválido. Use números, exemplo: 1800.00")
+
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE produtos SET preco = ? WHERE id = ?", (novo_preco, produto_id))
+    conn.commit()
+    conn.close()
+
+def atualizar_nome(produto_id, novo_nome):
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE produtos SET nome = ? WHERE id = ?", (novo_nome, produto_id))
+    conn.commit()
+    conn.close()

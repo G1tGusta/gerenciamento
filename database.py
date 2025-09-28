@@ -1,35 +1,44 @@
 # database.py
 import sqlite3
 
-DB_NAME = "estoque.db"
-
 def conectar():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect("estoque.db")
 
 def criar_tabelas():
     conn = conectar()
     cursor = conn.cursor()
 
-    # Tabela de produtos
+    # Produtos
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS produtos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
-        categoria TEXT NOT NULL,
-        preco REAL NOT NULL,
-        quantidade INTEGER NOT NULL
+        categoria TEXT,
+        preco REAL,
+        quantidade INTEGER
     )
     """)
 
-    # Tabela de movimentações
+    # Movimentações
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS movimentacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        produto_id INTEGER NOT NULL,
-        tipo TEXT NOT NULL, -- 'entrada' ou 'saida'
-        quantidade INTEGER NOT NULL,
+        produto_id INTEGER,
+        tipo TEXT,
+        quantidade INTEGER,
         data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (produto_id) REFERENCES produtos (id)
+        FOREIGN KEY(produto_id) REFERENCES produtos(id)
+    )
+    """)
+
+    # Usuários
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        usuario TEXT UNIQUE NOT NULL,
+        senha TEXT NOT NULL,
+        nivel TEXT NOT NULL CHECK(nivel IN ('admin', 'operador'))
     )
     """)
 
