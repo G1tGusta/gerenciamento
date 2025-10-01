@@ -44,7 +44,7 @@ def criar_tabelas():
     #Admin Default
     cursor.execute("""
     INSERT OR IGNORE INTO usuarios (nome, usuario, senha, nivel)
-    VALUES ('Administrador Master', 'admin', '12345', 'admin')
+    VALUES ('Administrador Master', 'admin', '1234', 'admin')
     """)
 
     conn.commit()

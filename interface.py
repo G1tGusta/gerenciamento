@@ -78,7 +78,8 @@ def abrir_relatorio_movimentacoes():
     colunas = ("ID", "Produto", "Tipo", "Quantidade", "Data")
     tree_mov = ttk.Treeview(relatorio, columns=colunas, show="headings")
     for col in colunas:
-        tree_mov.heading(col, text=col)
+        tree_mov.heading(col, text=col, anchor=tk.CENTER)
+        tree_mov.column(col, anchor=tk.CENTER)
     tree_mov.pack(fill="both", expand=True)
 
     for m in movimentos:
@@ -135,7 +136,8 @@ def iniciar_interface(user_id, nome, nivel):
 
     tk.Label(frame_cadastro, text="Quantidade:").grid(row=1, column=2)
     entry_quantidade = tk.Entry(frame_cadastro)
-    entry_quantidade.grid(row=1, column=3)
+    entry_quantidade.grid(row=1, column=3),
+    
 
     btn_cadastrar = tk.Button(frame_cadastro, text="Cadastrar Produto",
                               command=lambda: cadastrar(tree, entry_nome, entry_categoria, entry_preco, entry_quantidade))

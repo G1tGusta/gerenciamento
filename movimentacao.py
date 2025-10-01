@@ -38,7 +38,7 @@ def listar_movimentacoes():
     conn = conectar()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT m.id, p.nome, m.tipo, m.quantidade, m.data
+        SELECT m.id, p.nome, m.tipo, m.quantidade, STRFTIME('%d/%m/%Y %H:%M', m.data, 'localtime') AS data_formatada
         FROM movimentacoes m
         JOIN produtos p ON p.id = m.produto_id
         ORDER BY m.data DESC
