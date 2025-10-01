@@ -41,6 +41,11 @@ def criar_tabelas():
         nivel TEXT NOT NULL CHECK(nivel IN ('admin', 'operador'))
     )
     """)
+    #Admin Default
+    cursor.execute("""
+    INSERT OR IGNORE INTO usuarios (nome, usuario, senha, nivel)
+    VALUES ('Administrador Master', 'admin', '12345', 'admin')
+    """)
 
     conn.commit()
     conn.close()

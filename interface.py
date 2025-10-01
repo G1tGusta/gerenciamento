@@ -15,7 +15,7 @@ from movimentacao import registrar_movimentacao, listar_movimentacoes
 def atualizar_tabela(tree, alertar=True):
     for item in tree.get_children():
         tree.delete(item)
-    produtos = listar_produtos()
+    produtos = sorted(listar_produtos(), key=lambda p: p[4], reverse=False)
 
     produtos_baixo = []
 
@@ -196,7 +196,8 @@ def iniciar_interface(user_id, nome, nivel):
     colunas = ("ID", "Nome", "Categoria", "Preço", "Quantidade")
     tree = ttk.Treeview(frame_estoque, columns=colunas, show="headings")
     for col in colunas:
-        tree.heading(col, text=col)
+        tree.heading(col, text=col, anchor=tk.CENTER)
+        tree.column(col, anchor=tk.CENTER)
     tree.pack(fill="both", expand=True)
 
     # Botões extras no rodapé
