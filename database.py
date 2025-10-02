@@ -1,5 +1,8 @@
 # database.py
 import sqlite3
+import os
+import shutil
+from datetime import datetime
 
 def conectar():
     return sqlite3.connect("estoque.db")
@@ -41,7 +44,8 @@ def criar_tabelas():
         nivel TEXT NOT NULL CHECK(nivel IN ('admin', 'operador'))
     )
     """)
-    #Admin Default
+
+    # Admin Default
     cursor.execute("""
     INSERT OR IGNORE INTO usuarios (nome, usuario, senha, nivel)
     VALUES ('Administrador Master', 'admin', '1234', 'admin')
@@ -49,3 +53,18 @@ def criar_tabelas():
 
     conn.commit()
     conn.close()
+
+def backup_banco():
+    """Cria uma cópia do banco estoque.db na pasta backups/"""
+    if not os.path.exists("estoque.db"):
+        print("Banco de dados não encontrado para backup.")
+        return None
+
+    if not os.path.exists("backups"):
+        os.makedirs("backups")
+
+    datahora = datetime.now().strftime("%Y%m%d_%H%M%S")
+    destino = os.path.join("backups", f"estoque_{datahora}.db")
+    shutil.copyfile("estoque.db", destino)
+    print(f"Backup criado em {destino}")
+    return destino

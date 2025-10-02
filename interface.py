@@ -1,6 +1,7 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from dashboard import Dashboard
+from database import backup_banco
 
 from produto import (
     cadastrar_produto,
@@ -9,6 +10,12 @@ from produto import (
     atualizar_preco
 )
 from movimentacao import registrar_movimentacao, listar_movimentacoes
+
+# Para relatórios
+import pandas as pd
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 # ==== FUNÇÕES DE INTERFACE ====
 
@@ -111,12 +118,125 @@ def atualizar_preco_interface(entry_id, entry_preco, tree):
     except Exception as e:
         messagebox.showerror("Erro", str(e))
 
+def realizar_backup():
+    caminho = backup_banco()
+    if caminho:
+        messagebox.showinfo("Backup", f"Backup salvo em:\n{caminho}")
+    else:
+        messagebox.showerror("Erro", "Não foi possível criar o backup.")
+
+# ==== EXPORTAÇÃO ====
+
+def exportar_excel(tree):
+    dados = [tree.item(item)["values"] for item in tree.get_children()]
+    if not dados:
+        messagebox.showwarning("Aviso", "Não há dados na tabela para exportar.")
+        return
+
+    df = pd.DataFrame(dados, columns=["ID", "Nome", "Categoria", "Preço", "Quantidade"])
+    caminho = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+    if caminho:
+        df.to_excel(caminho, index=False)
+        messagebox.showinfo("Sucesso", f"Relatório exportado para {caminho}")
+
+def exportar_pdf(tree):
+    dados = [["ID", "Nome", "Categoria", "Preço", "Quantidade"]]
+    for item in tree.get_children():
+        dados.append(tree.item(item)["values"])
+
+    if len(dados) == 1:
+        messagebox.showwarning("Aviso", "Não há dados na tabela para exportar.")
+        return
+
+    caminho = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF", "*.pdf")])
+    if caminho:
+        doc = SimpleDocTemplate(caminho)
+        estilo = getSampleStyleSheet()
+        tabela = Table(dados)
+        tabela.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+        ]))
+        elementos = [Paragraph("Relatório de Estoque", estilo["Title"]), tabela]
+        doc.build(elementos)
+        messagebox.showinfo("Sucesso", f"Relatório exportado para {caminho}")
+
 # ==== INTERFACE PRINCIPAL ====
 
 def iniciar_interface(user_id, nome, nivel):
     root = tk.Tk()
     root.title(f"Sistema de Estoque - Usuário: {nome} ({nivel})")
-    root.geometry("950x700")
+    root.geometry("1050x750")
+
+    # --- Frame de Filtros ---
+    frame_filtros = tk.LabelFrame(root, text="Filtros de Estoque")
+    frame_filtros.pack(fill="x", padx=10, pady=5)
+
+    tk.Label(frame_filtros, text="Categoria:").grid(row=0, column=0, padx=5)
+    entry_categoria_filtro = tk.Entry(frame_filtros)
+    entry_categoria_filtro.grid(row=0, column=1, padx=5)
+
+    tk.Label(frame_filtros, text="Preço Mín:").grid(row=0, column=2, padx=5)
+    entry_preco_min = tk.Entry(frame_filtros, width=10)
+    entry_preco_min.grid(row=0, column=3, padx=5)
+
+    tk.Label(frame_filtros, text="Preço Máx:").grid(row=0, column=4, padx=5)
+    entry_preco_max = tk.Entry(frame_filtros, width=10)
+    entry_preco_max.grid(row=0, column=5, padx=5)
+
+    tk.Label(frame_filtros, text="Status:").grid(row=0, column=6, padx=5)
+    combo_status = ttk.Combobox(frame_filtros, values=["Todos", "Em falta", "Normal"], state="readonly", width=10)
+    combo_status.current(0)
+    combo_status.grid(row=0, column=7, padx=5)
+
+    def aplicar_filtros():
+        for item in tree.get_children():
+            tree.delete(item)
+
+        categoria = entry_categoria_filtro.get().lower()
+        preco_min = entry_preco_min.get()
+        preco_max = entry_preco_max.get()
+        status = combo_status.get()
+
+        produtos = listar_produtos()
+
+        for p in produtos:
+            id_prod, nome, categoria_p, preco, qtd = p
+
+            # Filtro por categoria
+            if categoria and categoria not in (categoria_p or "").lower():
+                continue
+
+            # Filtro por preço
+            if preco_min:
+                try:
+                    if preco < float(preco_min):
+                        continue
+                except:
+                    pass
+            if preco_max:
+                try:
+                    if preco > float(preco_max):
+                        continue
+                except:
+                    pass
+
+            # Filtro por status
+            if status == "Em falta" and qtd > 0:
+                continue
+            if status == "Normal" and qtd <= 0:
+                continue
+
+            tree.insert("", "end", values=p)
+
+    btn_aplicar = tk.Button(frame_filtros, text="Aplicar Filtros", command=aplicar_filtros)
+    btn_aplicar.grid(row=0, column=8, padx=10)
+
+    btn_limpar = tk.Button(frame_filtros, text="Limpar", command=lambda: atualizar_tabela(tree))
+    btn_limpar.grid(row=0, column=9, padx=5)
 
     # Frame Cadastro
     frame_cadastro = tk.LabelFrame(root, text="Cadastrar Produto")
@@ -137,7 +257,6 @@ def iniciar_interface(user_id, nome, nivel):
     tk.Label(frame_cadastro, text="Quantidade:").grid(row=1, column=2)
     entry_quantidade = tk.Entry(frame_cadastro)
     entry_quantidade.grid(row=1, column=3),
-    
 
     btn_cadastrar = tk.Button(frame_cadastro, text="Cadastrar Produto",
                               command=lambda: cadastrar(tree, entry_nome, entry_categoria, entry_preco, entry_quantidade))
@@ -217,6 +336,18 @@ def iniciar_interface(user_id, nome, nivel):
     btn_dashboard = tk.Button(frame_botoes, text="Dashboard",
                               command=abrir_dashboard_completo)
     btn_dashboard.pack(side="left", padx=10)
+
+    btn_excel = tk.Button(frame_botoes, text="Exportar Excel",
+                          command=lambda: exportar_excel(tree))
+    btn_excel.pack(side="left", padx=10)
+
+    btn_pdf = tk.Button(frame_botoes, text="Exportar PDF",
+                        command=lambda: exportar_pdf(tree))
+    btn_pdf.pack(side="left", padx=10)
+
+    btn_backup = tk.Button(frame_botoes, text="Backup Banco",
+                       command=realizar_backup)
+    btn_backup.pack(side="left", padx=10)
 
     # Carrega estoque inicial + alerta
     atualizar_tabela(tree, alertar=True)
