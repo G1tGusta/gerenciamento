@@ -166,6 +166,52 @@ def exportar_pdf(tree):
 
 # ==== INTERFACE PRINCIPAL ====
 
+def importar_planilha(tree):
+    caminho = filedialog.askopenfilename(
+        title="Selecione o arquivo CSV",
+        filetypes=[("Arquivos CSV", "*.csv")]
+    )
+    if not caminho:
+        return
+
+    try:
+        df = pd.read_csv(caminho, encoding="utf-8", sep=",")
+        colunas_esperadas = {"nome", "categoria", "preco", "quantidade"}
+
+        if not colunas_esperadas.issubset(df.columns):
+            messagebox.showerror(
+                "Erro",
+                f"Colunas inválidas!\nO CSV deve conter: {', '.join(colunas_esperadas)}"
+            )
+            return
+
+        inseridos = 0
+        for _, linha in df.iterrows():
+            nome = str(linha["nome"]).strip()
+            categoria = str(linha["categoria"]).strip()
+            preco = float(linha["preco"])
+            quantidade = int(linha["quantidade"])
+            if nome and categoria:
+                # Cadastra o produto
+                cadastrar_produto(nome, categoria, preco, quantidade)
+
+                # 🔽 Obtém o ID do produto recém cadastrado
+                produtos = listar_produtos()
+                novo_id = produtos[-1][0] if produtos else None
+
+                # 🔽 Registra movimentação de entrada
+                if novo_id:
+                    registrar_movimentacao(novo_id, quantidade, "entrada")
+
+                inseridos += 1
+
+        atualizar_tabela(tree)
+        messagebox.showinfo("Importação concluída", f"{inseridos} produtos cadastrados e movimentações registradas!")
+
+    except Exception as e:
+        messagebox.showerror("Erro ao importar planilha", str(e))
+
+
 def iniciar_interface(user_id, nome, nivel):
     root = tk.Tk()
     root.title(f"Sistema de Estoque - Usuário: {nome} ({nivel})")
@@ -322,6 +368,7 @@ def iniciar_interface(user_id, nome, nivel):
     tree.pack(fill="both", expand=True)
 
     # Botões extras no rodapé
+    
     frame_botoes = tk.Frame(root)
     frame_botoes.pack(side="bottom", fill="x", pady=10)
 
@@ -348,6 +395,10 @@ def iniciar_interface(user_id, nome, nivel):
     btn_backup = tk.Button(frame_botoes, text="Backup Banco",
                        command=realizar_backup)
     btn_backup.pack(side="left", padx=10)
+    
+    btn_importar = tk.Button(frame_botoes, text="Importar Planilha CSV",
+                             command=lambda: importar_planilha(tree))
+    btn_importar.pack(side="left", padx=10)
 
     # Carrega estoque inicial + alerta
     atualizar_tabela(tree, alertar=True)
