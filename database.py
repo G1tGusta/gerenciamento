@@ -5,7 +5,17 @@ import shutil
 from datetime import datetime
 
 def conectar():
-    return sqlite3.connect("estoque.db")
+    """
+    Estabelece a conexão com o banco de dados 'estoque.db'.
+    Configura PARSE_DECLTYPES e PARSE_COLNAMES para correto reconhecimento de tipos de data/hora (TIMESTAMP).
+    """
+    conn = sqlite3.connect(
+        "estoque.db", 
+        detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+    )
+    # Garante que as chaves estrangeiras estejam ativas
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 def criar_tabelas():
     conn = conectar()
@@ -53,6 +63,39 @@ def criar_tabelas():
 
     conn.commit()
     conn.close()
+
+
+def checar_e_corrigir_coluna():
+    """
+    Verifica se a coluna 'data' existe na tabela 'movimentacoes' e a adiciona se necessário.
+    Utilizado para corrigir bancos de dados criados antes da implementação da coluna 'data'.
+    """
+    conn = conectar()
+    cursor = conn.cursor()
+    
+    # 1. Checa se a tabela 'movimentacoes' existe
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='movimentacoes'")
+    if not cursor.fetchone():
+        conn.close()
+        return
+
+    # 2. Checa se a coluna 'data' existe na tabela 'movimentacoes'
+    try:
+        # Tenta selecionar a coluna 'data'. Se ela não existir, lança um erro.
+        cursor.execute("SELECT data FROM movimentacoes LIMIT 1")
+    except sqlite3.OperationalError:
+        # Se cair aqui, a coluna 'data' está faltando ou foi removida.
+        print("Coluna 'data' faltando na tabela movimentacoes. Corrigindo com ALTER TABLE.")
+        try:
+            # Adiciona a coluna 'data' sem perder dados existentes!
+            cursor.execute("ALTER TABLE movimentacoes ADD COLUMN data TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+            conn.commit()
+            print("Coluna 'data' adicionada com sucesso.")
+        except Exception as e:
+            print(f"Erro ao tentar adicionar coluna 'data': {e}")
+            
+    conn.close()
+
 
 def backup_banco():
     """Cria uma cópia do banco estoque.db na pasta backups/"""

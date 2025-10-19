@@ -7,6 +7,7 @@ reportlab
 
 # Manipulação de dados
 pandas
+openpyxl
 
 # Gráficos e dashboards
 matplotlib

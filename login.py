@@ -1,6 +1,6 @@
 # login.py
 import customtkinter as ctk
-from usuario import autenticar
+from usuario import autenticar # Assumindo que você tem autenticar em usuario.py
 from interface import iniciar_interface
 
 ctk.set_appearance_mode("dark")
@@ -33,10 +33,7 @@ class LoginApp(ctk.CTk):
         if dados:
             user_id, nome, nivel = dados
             self.destroy()  # Fecha a janela de login
-            iniciar_interface(user_id, nome, nivel)  # Abre a interface principal
+            # A função iniciar_interface recebe os 3 argumentos, resolvendo o TypeError
+            iniciar_interface(user_id, nome, nivel) 
         else:
             self.label_erro.configure(text="Usuário ou senha inválidos.")
-
-def iniciar_login():
-    app = LoginApp()
-    app.mainloop()

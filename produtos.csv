@@ -1,41 +1,5 @@
-nome,categoria,preco,quantidade
-Mouse Gamer,Perifericos,157.45,78
-Teclado Mecanico,Eletronicos,2525.03,80
-Monitor 24,Acessorios,852.55,32
-Cadeira Ergonomica,Eletrodomesticos,2909.36,25
-Headset RGB,Eletrodomesticos,673.17,68
-Notebook Pro,Eletronicos,4371.46,29
-Tablet X,Acessorios,869.59,69
-Smartphone Y,Informatica,4977.71,16
-Carregador Turbo,Eletrodomesticos,2559.79,39
-Cabo HDMI,Eletronicos,444.82,5
-Pendrive 64GB,Eletrodomesticos,517.2,35
-HD Externo 1TB,Eletronicos,3272.8,4
-SSD 512GB,Informatica,3836.22,53
-Placa de Video,Eletronicos,2564.5,8
-Processador X9,Acessorios,4253.68,15
-Memoria RAM 16GB,Acessorios,386.5,72
-Fonte 650W,Informatica,4558.84,86
-Gabinete Gamer,Informatica,3426.96,57
-Cooler Master,Eletronicos,493.55,98
-Roteador WiFi,Acessorios,1951.96,42
-Impressora,Perifericos,4706.37,72
-Scanner,Eletrodomesticos,4927.85,15
-Mousepad,Perifericos,3964.65,24
-Webcam Full HD,Perifericos,2274.39,31
-Microfone USB,Acessorios,144.51,41
-Smartwatch,Informatica,2114.27,59
-TV 50,Informatica,1081.22,69
-Console Z,Acessorios,3990.66,44
-Controle Bluetooth,Eletrodomesticos,3469.41,78
-Caixa de Som,Acessorios,377.73,21
-Luminaria LED,Informatica,2582.26,85
-Powerbank,Informatica,2597.59,33
-Drone X,Eletrodomesticos,4366.71,94
-Camera Digital,Acessorios,4252.19,95
-Ventilador,Perifericos,525.9,67
-Ar Condicionado,Acessorios,4809.05,93
-Liquidificador,Eletronicos,2876.92,24
-Aspirador Robo,Eletrodomesticos,1801.24,35
-Fogao Eletrico,Eletronicos,4715.75,8
-Geladeira,Acessorios,1778.24,9
+ID;Nome do Produto;Categoria;Preço (R$);Qtd. Atual
+1;IPHONE 17;Eletronico;1.00;4
+4;Samsumg A55;Eletronico;3.00;5
+3;Samsumg A30;Eletronico;5.00;10
+2;Samsumg S20;Eletronico;2.00;57
