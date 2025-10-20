@@ -1,7 +1,7 @@
 # kpi_calculator.py
 
 from database import conectar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta # O 'timedelta' pode ser removido, mas vou mantê-lo por segurança
 
 def calcular_kpis():
     """Calcula todos os indicadores (KPIs) de estoque."""
@@ -10,8 +10,8 @@ def calcular_kpis():
     conn = conectar() 
     cursor = conn.cursor()
     
-    # CRÍTICO: Calcula a data de 30 dias atrás no Python e formata para o SQLite
-    data_30_dias_atras = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+    # CRÍTICO: LINHA REMOVIDA/IGNORADA!
+    # data_30_dias_atras = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
 
     # 1. SOMA TOTAL DE UNIDADES (CORREÇÃO APLICADA)
     # COALESCE garante que, se o resultado de SUM for NULL (tabela vazia), ele retornará 0.
@@ -27,18 +27,19 @@ def calcular_kpis():
     produtos_baixo = cursor.execute("SELECT nome, quantidade FROM produtos WHERE quantidade < 3").fetchall()
     kpis['produtos_baixo'] = produtos_baixo
     
-    # 4. GIRO DE ESTOQUE
+    # 4. GIRO DE ESTOQUE (ALTERAÇÃO CRÍTICA AQUI)
     
     # Busca o total de saídas (vendas/movimentações) nos últimos 30 dias
+    # Usando DATETIME('now', '-30 days') do SQLite para garantir formato e comparação corretos.
     cursor.execute("""
         SELECT COALESCE(SUM(M.quantidade), 0)
         FROM movimentacoes M
-        WHERE M.tipo = 'saida' AND M.data >= ? 
-    """, (data_30_dias_atras,))
+        WHERE M.tipo = 'saida' AND M.data >= DATETIME('now', '-30 days') 
+    """)
     
     total_saidas_30d = cursor.fetchone()[0]
     
-    estoque_atual = total_qtd # USA O VALOR CALCULADO NA LINHA 21
+    estoque_atual = total_qtd # USA O VALOR CALCULADO ANTERIORMENTE
     
     giro_calculado = 0
     
@@ -47,8 +48,7 @@ def calcular_kpis():
         giro_calculado = total_saidas_30d / estoque_atual
         
         # DEBUG: Se quiser ver o cálculo na console (opcional)
-        # print(f"DEBUG: Saídas (30d) = {total_saidas_30d}, Estoque Atual = {estoque_atual}")
-        # print(f"DEBUG: Giro Calculado = {giro_calculado}")
+        # print(f"DEBUG: Saídas (30d) = {total_saidas_30d}, Estoque Atual = {estoque_atual}, Giro = {giro_calculado}")
     
     kpis['giro'] = giro_calculado
 

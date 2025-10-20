@@ -47,6 +47,7 @@ def importar_csv_para_banco(tree, app_instance):
         for index, row in df.iterrows():
             try:
                 nome = str(row['nome']).strip()
+                # Se o CSV não tem 'categoria', usa 'Geral'
                 categoria = str(row.get('categoria', 'Geral')).strip() 
                 
                 preco = str(row['preco']).replace(',', '.')
@@ -151,6 +152,11 @@ class EstoqueApp(ctk.CTk):
         self.grid_columnconfigure(1, weight=1) 
         self.grid_rowconfigure(0, weight=1)
 
+        # ----------------------------------------------------
+        # 1. NOVO: Lista de categorias padrão para o ComboBox
+        # ----------------------------------------------------
+        self.categorias_padrao = ["Eletronico", "Alimento", "Vestuário", "Higiene", "Outros"]
+
         # 1. Barra Lateral (Sidebar)
         self.sidebar_frame = ctk.CTkFrame(self, width=180, corner_radius=0, fg_color="#2C3E50")
         self.sidebar_frame.grid(row=0, column=0, sticky="nswe")
@@ -217,17 +223,17 @@ class EstoqueApp(ctk.CTk):
         style.theme_use("clam")
         
         style.configure("Treeview", 
-                        background="#343638", 
-                        foreground="white", 
-                        fieldbackground="#343638",
-                        rowheight=25,
-                        font=('Arial', 11))
+                         background="#343638", 
+                         foreground="white", 
+                         fieldbackground="#343638",
+                         rowheight=25,
+                         font=('Arial', 11))
         style.map('Treeview', background=[('selected', '#1F6AA5')])
 
         style.configure("Treeview.Heading", 
-                        font=('Arial', 12, 'bold'), 
-                        background="#202224", 
-                        foreground="white")
+                         font=('Arial', 12, 'bold'), 
+                         background="#202224", 
+                         foreground="white")
 
         tree = ttk.Treeview(parent_frame, columns=("ID", "Nome", "Categoria", "Preço", "Quantidade"), show="headings")
         
@@ -289,29 +295,121 @@ class EstoqueApp(ctk.CTk):
         except Exception as e:
             messagebox.showerror("Erro Dashboard", f"Não foi possível abrir o Dashboard. Erro: {e}")
 
+    # ----------------------------------------------------------------------
+    # NOVOS MÉTODOS PARA GERENCIAMENTO DE CATEGORIA (Início da Alteração)
+    # ----------------------------------------------------------------------
+
+    def categoria_selecionada_callback(self, choice):
+        """Ação ao selecionar uma categoria no ComboBox (pode ser vazia)."""
+        pass
+
+    def adicionar_nova_categoria_modal(self):
+        """Cria um modal para que o usuário digite e adicione uma nova categoria à lista."""
+        modal_add_cat = ctk.CTkToplevel(self)
+        modal_add_cat.title("Nova Categoria")
+        modal_add_cat.geometry("350x150")
+        modal_add_cat.transient(self) # Mantém acima da janela principal
+        modal_add_cat.grab_set()
+        
+        ctk.CTkLabel(modal_add_cat, text="Nome da Nova Categoria:").pack(padx=20, pady=10)
+        
+        entry_nova_categoria = ctk.CTkEntry(modal_add_cat)
+        entry_nova_categoria.pack(padx=20, fill="x")
+
+        def salvar_nova_categoria():
+            nova_categoria = entry_nova_categoria.get().strip()
+            if nova_categoria and nova_categoria not in self.categorias_padrao:
+                # 1. Adiciona na lista da classe
+                self.categorias_padrao.append(nova_categoria)
+                # 2. Atualiza a lista de valores do ComboBox do modal principal
+                # Usamos self.entry_categoria (que é o ComboBox no modal de cadastro)
+                if hasattr(self, 'entry_categoria'):
+                     self.entry_categoria.configure(values=self.categorias_padrao)
+                     self.entry_categoria.set(nova_categoria) # Define a nova categoria como selecionada
+                messagebox.showinfo("Sucesso", f"Categoria '{nova_categoria}' adicionada.")
+                modal_add_cat.destroy()
+            elif nova_categoria in self.categorias_padrao:
+                messagebox.showerror("Erro", "Esta categoria já existe.")
+            else:
+                messagebox.showerror("Erro", "O nome da categoria não pode ser vazio.")
+
+        ctk.CTkButton(modal_add_cat, text="Adicionar", command=salvar_nova_categoria).pack(pady=10)
+        modal_add_cat.focus_set()
+
+    # ----------------------------------------------------------------------
+    # FIM DOS NOVOS MÉTODOS DE GERENCIAMENTO DE CATEGORIA
+    # ----------------------------------------------------------------------
+
+
     # --- Funções Modais ---
 
     def abrir_modal_cadastro(self):
         modal = ctk.CTkToplevel(self)
         modal.title("Cadastrar Novo Produto")
-        modal.geometry("350x300")
+        # Ajusta a geometria para acomodar o novo campo
+        modal.geometry("450x300") 
         modal.transient(self) 
         modal.grab_set()
         
+        # Estrutura de grid para labels e entries
+        modal.grid_columnconfigure(1, weight=1)
+
         campos = ["Nome:", "Categoria:", "Preço (R$):", "Quantidade Inicial:"]
+        # Usa um dicionário para mapear os campos que ainda são entries
         entries = {}
         
-        for i, campo in enumerate(campos):
-            ctk.CTkLabel(modal, text=campo).grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            entry = ctk.CTkEntry(modal, width=200)
-            entry.grid(row=i, column=1, padx=10, pady=5)
-            entries[campo] = entry
+        # Campo Nome (row 0)
+        ctk.CTkLabel(modal, text="Nome:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        entry_nome = ctk.CTkEntry(modal, width=250)
+        entry_nome.grid(row=0, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
+        entries["Nome:"] = entry_nome
+        
+        # ----------------------------------------------------
+        # ALTERAÇÃO: CATEGORIA (row 1)
+        # ----------------------------------------------------
+        ctk.CTkLabel(modal, text="Categoria:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        
+        # 1. Criação do ComboBox (armazenado em self.entry_categoria para ser acessado pelo novo modal)
+        self.entry_categoria = ctk.CTkComboBox(
+            modal, 
+            values=self.categorias_padrao,
+            command=self.categoria_selecionada_callback,
+            state="readonly"
+        )
+        self.entry_categoria.set(self.categorias_padrao[0]) # Define o valor inicial
+        self.entry_categoria.grid(row=1, column=1, padx=(10, 5), pady=5, sticky="ew")
 
+        # 2. Adicionar o botão para incluir nova categoria
+        ctk.CTkButton(
+            modal, 
+            text="+ Categoria", 
+            command=self.adicionar_nova_categoria_modal,
+            width=50, 
+            fg_color="#3498DB"
+        ).grid(row=1, column=2, padx=(0, 10), pady=5, sticky="w")
+
+        # Campo Preço (row 2)
+        ctk.CTkLabel(modal, text="Preço (R$):").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        entry_preco = ctk.CTkEntry(modal, width=250)
+        entry_preco.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
+        entries["Preço (R$)"] = entry_preco
+        
+        # Campo Quantidade (row 3)
+        ctk.CTkLabel(modal, text="Quantidade Inicial:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        entry_quantidade = ctk.CTkEntry(modal, width=250)
+        entry_quantidade.grid(row=3, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
+        entries["Quantidade Inicial:"] = entry_quantidade
+        
+        # A nova lógica de salvar deve pegar a categoria do ComboBox
         def salvar():
             try:
                 nome = entries["Nome:"].get()
-                categoria = entries["Categoria:"].get()
-                preco = entries["Preço (R$):"].get()
+                # ----------------------------------------------------
+                # ALTERAÇÃO: Pegar categoria do ComboBox
+                # ----------------------------------------------------
+                categoria = self.entry_categoria.get()
+                # ----------------------------------------------------
+                preco = entries["Preço (R$)"] .get()
                 quantidade = int(entries["Quantidade Inicial:"].get())
                 
                 cadastrar_produto(nome, categoria, preco, quantidade)
@@ -323,7 +421,9 @@ class EstoqueApp(ctk.CTk):
             except Exception as e:
                 messagebox.showerror("Erro", f"Erro inesperado: {e}")
 
-        ctk.CTkButton(modal, text="Salvar", command=salvar, fg_color="#2ECC71").grid(row=len(campos), column=0, columnspan=2, pady=10)
+        # O botão Salvar fica na última linha
+        ctk.CTkButton(modal, text="Salvar", command=salvar, fg_color="#2ECC71").grid(row=len(campos), column=0, columnspan=3, pady=10)
+
 
     def abrir_modal_edicao(self, event):
         selected_item = self.tree.selection()
