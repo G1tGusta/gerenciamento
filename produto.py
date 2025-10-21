@@ -1,7 +1,12 @@
-# produto.py
 from database import conectar
 
-def cadastrar_produto(nome, categoria, preco, quantidade):
+# Definição dos 6 campos para ser consistente em todas as consultas
+COLUNAS_PRODUTO = "id, nome, categoria, preco, quantidade, codigo_barras"
+
+def cadastrar_produto(nome, categoria, preco, quantidade, codigo_barras=""):
+    """
+    Cadastra um novo produto, agora incluindo o Código de Barras.
+    """
     preco = str(preco).replace(",", ".")  # corrige vírgula para ponto
     try:
         preco = float(preco)
@@ -10,17 +15,19 @@ def cadastrar_produto(nome, categoria, preco, quantidade):
 
     conn = conectar()
     cursor = conn.cursor()
+    # CORRIGIDO: Inclui codigo_barras no INSERT
     cursor.execute("""
-        INSERT INTO produtos (nome, categoria, preco, quantidade)
-        VALUES (?, ?, ?, ?)
-    """, (nome, categoria, preco, quantidade))
+        INSERT INTO produtos (nome, categoria, preco, quantidade, codigo_barras)
+        VALUES (?, ?, ?, ?, ?)
+    """, (nome, categoria, preco, quantidade, codigo_barras))
     conn.commit()
     conn.close()
 
 def listar_produtos():
     conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM produtos")
+    # CORRIGIDO: Seleciona explicitamente os 6 campos
+    cursor.execute(f"SELECT {COLUNAS_PRODUTO} FROM produtos")
     produtos = cursor.fetchall()
     conn.close()
     return produtos
@@ -28,7 +35,8 @@ def listar_produtos():
 def buscar_produto_por_id(produto_id):
     conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM produtos WHERE id = ?", (produto_id,))
+    # CORRIGIDO: Seleciona explicitamente os 6 campos
+    cursor.execute(f"SELECT {COLUNAS_PRODUTO} FROM produtos WHERE id = ?", (produto_id,))
     produto = cursor.fetchone()
     conn.close()
     return produto
@@ -36,7 +44,8 @@ def buscar_produto_por_id(produto_id):
 def buscar_produto_por_nome(nome):
     conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM produtos WHERE nome LIKE ?", ('%' + nome + '%',))
+    # CORRIGIDO: Seleciona explicitamente os 6 campos
+    cursor.execute(f"SELECT {COLUNAS_PRODUTO} FROM produtos WHERE nome LIKE ?", ('%' + nome + '%',))
     produtos = cursor.fetchall()
     conn.close()
     return produtos
@@ -74,3 +83,16 @@ def atualizar_nome(produto_id, novo_nome):
     cursor.execute("UPDATE produtos SET nome = ? WHERE id = ?", (novo_nome, produto_id))
     conn.commit()
     conn.close()
+    
+def buscar_produto_por_codigo_barras(codigo):
+    """
+    Busca um produto pelo código de barras.
+    Retorna a tupla completa (6 campos) ou None.
+    """
+    conn = conectar()
+    cursor = conn.cursor()
+    # CORRIGIDO: Seleciona explicitamente os 6 campos
+    cursor.execute(f"SELECT {COLUNAS_PRODUTO} FROM produtos WHERE codigo_barras = ?", (codigo,))
+    produto = cursor.fetchone()
+    conn.close()
+    return produto

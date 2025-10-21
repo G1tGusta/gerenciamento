@@ -19,3 +19,6 @@ scikit-learn
 # Interface web (opcional, para futura expansão)
 flask
 
+# Código de barras 
+opencv
+pyzbar

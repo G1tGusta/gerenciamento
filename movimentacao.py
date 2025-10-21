@@ -24,7 +24,7 @@ def registrar_movimentacao(produto_id, quantidade, tipo):
         raise ValueError("Produto não encontrado.") 
 
     # A tupla de produtos é: (ID, Nome, Categoria, Preco, Quantidade)
-    id_produto, nome, categoria, preco, qtd_atual = produto
+    id_produto, nome, categoria, preco, qtd_atual, codigo_barras = produto
 
     if tipo == "entrada":
         nova_quantidade = qtd_atual + quantidade
