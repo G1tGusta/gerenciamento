@@ -12,6 +12,8 @@ openpyxl
 # Gráficos e dashboards
 matplotlib
 customtkinter
+numpy
+
 
 # Inteligência Artificial
 scikit-learn
@@ -20,5 +22,5 @@ scikit-learn
 flask
 
 # Código de barras 
-opencv
+opencv_python
 pyzbar
