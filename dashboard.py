@@ -106,9 +106,11 @@ class Dashboard(ctk.CTkToplevel):
         fig, ax = plt.subplots(figsize=(3.5, 3.5)) 
         
         # Fundo Cinza Claro para contraste
-        fig.patch.set_facecolor('#F0F0F0') 
-        ax.set_facecolor('#F0F0F0') 
+        fig.patch.set_facecolor("#F0F0F0") 
+        ax.set_facecolor("#F0F0F0") 
         
+        ##F0F0F0
+
         ax.pie(valores, 
                autopct=lambda pct: f"{pct:.1f}%" if pct > 0 else '',
                textprops=dict(color="black", fontsize=8, fontweight='bold'), 
@@ -224,9 +226,9 @@ class Dashboard(ctk.CTkToplevel):
 
         style = ttk.Style()
         style.theme_use("default") 
-        style.configure("Treeview.Heading", font=('Arial', 10, 'bold'), foreground='white', background='#4682B4') 
+        style.configure("Treeview.Heading", font=('Arial', 10, 'bold'), foreground='#003669', background='#4682B4') 
         style.configure("Treeview", font=('Arial', 10), rowheight=25, background='white', foreground='black')
-        style.map("Treeview", background=[('selected', '#F0F0F0')]) 
+        style.map("Treeview", background=[('selected', "#003669")]) 
 
         self.tree = ttk.Treeview(tabela_frame, columns=("ID", "Produto", "Tipo", "Quantidade", "Data"), show='headings')
 

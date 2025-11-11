@@ -137,7 +137,7 @@ def exportar_pdf(tree):
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#ECF0F1')),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#EEEEEE")),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
         story.append(t)
